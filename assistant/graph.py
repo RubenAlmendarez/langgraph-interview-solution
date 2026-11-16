@@ -13,7 +13,9 @@ class State(TypedDict, total=False):
     question: str
     flight: str
     passages: list
+    sources: list[str]
     seats: int | None
+    booking_attempts: int
     booking_failed: bool
     answer: str
 
@@ -24,14 +26,16 @@ def find_rules(state):
 
 
 def check_seats(state):
+    attempts = state.get("booking_attempts", 0) + 1
     try:
-        return {"seats": booking.free_seats(state["flight"]), "booking_failed": False}
+        return {"seats": booking.free_seats(state["flight"]), "booking_failed": False,
+                "booking_attempts": attempts}
     except booking.BookingSystemDown:
-        return {"seats": None, "booking_failed": True}
+        return {"seats": None, "booking_failed": True, "booking_attempts": attempts}
 
 
 def after_check_seats(state):
-    if state["booking_failed"]:
+    if state["booking_failed"] and state["booking_attempts"] < 3:
         return "check_seats"
     return "write_answer"
 

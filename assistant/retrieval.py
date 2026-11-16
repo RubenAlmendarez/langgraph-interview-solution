@@ -25,7 +25,7 @@ def by_title_and_text(question, passages, k):
 RETRIEVERS = {"by_title": by_title, "by_title_and_text": by_title_and_text}
 
 # Task 3: after measuring both retrievers with recall_at_k, set this to the better one.
-CHOSEN_RETRIEVER = "by_title"
+CHOSEN_RETRIEVER = "by_title_and_text"
 
 
 def recall_at_k(ranked_ids, relevant_ids, k):
@@ -35,4 +35,8 @@ def recall_at_k(ranked_ids, relevant_ids, k):
     relevant_ids: the right passage id for each question, e.g. ["FR-01", "FR-02"]
     Returns a number from 0.0 to 1.0. In the example, recall_at_k(..., k=2) is 0.5.
     """
-    raise NotImplementedError("Task 3")
+    if len(ranked_ids) != len(relevant_ids):
+        raise ValueError("Expected one ranking per relevant passage id")
+    if not relevant_ids or k <= 0:
+        return 0.0
+    return sum(relevant in ranked[:k] for ranked, relevant in zip(ranked_ids, relevant_ids)) / len(relevant_ids)
